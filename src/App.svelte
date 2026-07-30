@@ -54,23 +54,13 @@
     const savedUser = localStorage.getItem('auth_user');
     if (savedToken && savedUser) {
       try {
-        const valid = await verifyToken(savedToken);
-        if (valid) {
-          authToken = savedToken;
-          user = JSON.parse(savedUser);
-          isAuthenticated = true;
-          setAuthToken(savedToken);
-        } else {
-          localStorage.removeItem('auth_token');
-          localStorage.removeItem('auth_user');
-        }
-      } catch {
-        // Error de red/CORS: confiar en el token guardado
-        authToken = savedToken;
-        user = JSON.parse(savedUser);
-        isAuthenticated = true;
-        setAuthToken(savedToken);
-      }
+        await verifyToken(savedToken);
+      } catch { /* ignore */ }
+      // Siempre confiar en el token guardado — solo handleLogout lo limpia
+      authToken = savedToken;
+      user = JSON.parse(savedUser);
+      isAuthenticated = true;
+      setAuthToken(savedToken);
     }
     authChecked = true;
   });
