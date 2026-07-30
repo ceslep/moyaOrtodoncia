@@ -10,6 +10,8 @@
   import DataField from '$lib/components/DataField.svelte';
   import FieldIcon from '$lib/components/FieldIcon.svelte';
   import GlassCard from '$lib/components/GlassCard.svelte';
+  import PhoneField from '$lib/components/PhoneField.svelte';
+  import EmailField from '$lib/components/EmailField.svelte';
 
   let { ind = 0, onNavigate = (view: string, params?: Record<string, unknown>) => {} } = $props();
 
@@ -237,9 +239,9 @@
                   tone="orange"
                 />
                 <DataField label="Barrio" value={paciente.barrio} iconName="map-pin" tone="orange" />
-                <DataField label="Tel. móvil" value={paciente.telefono_movil} iconName="mobile" tone="teal" />
-                <DataField label="Tel. residencia" value={paciente.telefono_residencia1} iconName="phone" tone="teal" />
-                <DataField label="Email" value={paciente.email1} iconName="mail" tone="sky" span="sm:col-span-2" />
+                <PhoneField label="Tel. móvil" value={paciente.telefono_movil} iconName="mobile" />
+                <PhoneField label="Tel. residencia" value={paciente.telefono_residencia1} iconName="phone" />
+                <EmailField label="Email" value={paciente.email1} />
                 <DataField label="Fecha inicio" value={paciente.fecha_inicio} iconName="calendar" tone="emerald" />
               </dl>
             </CollapsibleSection>
@@ -255,13 +257,13 @@
                    que la columna de contacto se lea de un barrido -->
               <dl class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                 <DataField label="Padre" value={paciente.nombre_padre} iconName="user" tone="blue" />
-                <DataField label="Tel. padre" value={paciente.telefono_padre} iconName="phone" tone="teal" />
+                <PhoneField label="Tel. padre" value={paciente.telefono_padre} />
                 <DataField label="Madre" value={paciente.nombre_madre} iconName="user" tone="pink" />
-                <DataField label="Tel. madre" value={paciente.telefono_madre} iconName="phone" tone="teal" />
+                <PhoneField label="Tel. madre" value={paciente.telefono_madre} />
                 <DataField label="Acudiente" value={paciente.nombre_acudiente} iconName="users" tone="indigo" />
-                <DataField label="Tel. acudiente" value={paciente.telefono_acudiente} iconName="phone" tone="teal" />
+                <PhoneField label="Tel. acudiente" value={paciente.telefono_acudiente} />
                 <DataField label="Cónyuge" value={paciente.nombre_conyuge} iconName="heart" tone="rose" />
-                <DataField label="Tel. cónyuge" value={paciente.telefono_conyuge} iconName="phone" tone="teal" />
+                <PhoneField label="Tel. cónyuge" value={paciente.telefono_conyuge} />
                 <DataField label="Hermanos" value={paciente.cantidad_hermanos} iconName="users" tone="violet" />
               </dl>
             </CollapsibleSection>
