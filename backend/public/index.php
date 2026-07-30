@@ -28,6 +28,8 @@ require_once dirname(__DIR__) . '/src/Repositories/AbonoRepository.php';
 require_once dirname(__DIR__) . '/src/Repositories/CatalogoRepository.php';
 require_once dirname(__DIR__) . '/src/Repositories/HojaVidaRepository.php';
 require_once dirname(__DIR__) . '/src/Repositories/DashboardRepository.php';
+require_once dirname(__DIR__) . '/src/Repositories/MunicipioRepository.php';
+require_once dirname(__DIR__) . '/src/Repositories/OcupacionRepository.php';
 require_once dirname(__DIR__) . '/src/Controllers/PacienteController.php';
 require_once dirname(__DIR__) . '/src/Controllers/CitaController.php';
 require_once dirname(__DIR__) . '/src/Controllers/EvolucionController.php';
@@ -36,6 +38,8 @@ require_once dirname(__DIR__) . '/src/Controllers/AbonoController.php';
 require_once dirname(__DIR__) . '/src/Controllers/CatalogoController.php';
 require_once dirname(__DIR__) . '/src/Controllers/HojaVidaController.php';
 require_once dirname(__DIR__) . '/src/Controllers/DashboardController.php';
+require_once dirname(__DIR__) . '/src/Controllers/MunicipioController.php';
+require_once dirname(__DIR__) . '/src/Controllers/OcupacionController.php';
 
 use Support\JsonResponse;
 
@@ -109,6 +113,22 @@ try {
     // Route: /api/entidades
     elseif ($route === '/api/entidades') {
         \Controllers\CatalogoController::entidades();
+    }
+    // Route: /api/municipios/buscar
+    elseif ($route === '/api/municipios/buscar') {
+        \Controllers\MunicipioController::search();
+    }
+    // Route: /api/municipios/{codigo}
+    elseif (preg_match('#^/api/municipios/([^/]+)$#', $route, $m)) {
+        \Controllers\MunicipioController::byCodigo(urldecode($m[1]));
+    }
+    // Route: /api/ocupaciones/buscar
+    elseif ($route === '/api/ocupaciones/buscar') {
+        \Controllers\OcupacionController::search();
+    }
+    // Route: /api/ocupaciones/{codigo}
+    elseif (preg_match('#^/api/ocupaciones/([^/]+)$#', $route, $m)) {
+        \Controllers\OcupacionController::byCodigo(urldecode($m[1]));
     }
     // Route: /api/personal/{ind}/{identificacion}
     elseif (preg_match('#^/api/personal/(\d+)/(\d+)$#', $route, $m)) {

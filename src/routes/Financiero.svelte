@@ -7,8 +7,9 @@
 
   let { onNavigate = (view: string, params?: Record<string, unknown>) => {} } = $props();
 
-  let desde = $state('');
-  let hasta = $state('');
+  const today = new Date().toISOString().split('T')[0];
+  let desde = $state(today);
+  let hasta = $state(today);
   let formaPago = $state('');
   let page = $state(1);
   let data = $state<Abono[]>([]);

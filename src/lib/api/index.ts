@@ -104,3 +104,11 @@ export function getDashboard() {
 export function getDatosEmpresa() {
   return apiFetch<{ data: DatosEmpresa }>(`${BASE}?route=api/datos-empresa`);
 }
+
+export function getMunicipioByCodigo(codigo: string) {
+  return apiFetch<{ data: Record<string, string> }>(`${BASE}?route=api/municipios/${encodeURIComponent(codigo)}`);
+}
+
+export function getOcupacionByCodigo(codigo: string) {
+  return apiFetch<{ data: Record<string, string> }>(`${BASE}?route=api/ocupaciones/${encodeURIComponent(codigo)}`);
+}

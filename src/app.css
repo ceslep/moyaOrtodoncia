@@ -19,6 +19,27 @@
   --color-health-500: #10b981;
   --color-health-600: #059669;
   --color-health-700: #047857;
+
+  /* Acento de marca (morado) — 3a metrica hero, evoluciones */
+  --color-accent-50: #f5f3ff;
+  --color-accent-100: #ede9fe;
+  --color-accent-200: #ddd6fe;
+  --color-accent-400: #a78bfa;
+  --color-accent-500: #8b5cf6;
+  --color-accent-600: #7c3aed;
+  --color-accent-700: #6d28d9;
+
+  /* Elevacion: blur alto + opacidad baja = look flotante */
+  --shadow-soft: 0 1px 2px rgba(15, 23, 42, 0.04), 0 2px 8px -2px rgba(15, 23, 42, 0.06);
+  --shadow-float: 0 8px 32px -8px rgba(15, 23, 42, 0.12), 0 2px 8px -4px rgba(15, 23, 42, 0.06);
+  --shadow-lift: 0 20px 48px -12px rgba(15, 23, 42, 0.18), 0 6px 16px -8px rgba(15, 23, 42, 0.08);
+  --shadow-glow-primary: 0 10px 28px -8px rgba(30, 64, 175, 0.5);
+  --shadow-glow-health: 0 10px 28px -8px rgba(5, 150, 105, 0.45);
+  --shadow-glow-accent: 0 10px 28px -8px rgba(124, 58, 237, 0.45);
+  --shadow-inset-top: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+
+  --ease-smooth: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-out-soft: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 * {
@@ -34,6 +55,20 @@ html {
 body {
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   background: #f8fafc;
+  color: #0f172a;
+}
+
+/* Malla de color ambiental de fondo: da profundidad al glass sin saturar */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(56rem 32rem at 12% -8%, rgba(59, 130, 246, 0.10), transparent 60%),
+    radial-gradient(48rem 30rem at 92% 4%, rgba(16, 185, 129, 0.09), transparent 62%),
+    radial-gradient(44rem 30rem at 74% 96%, rgba(139, 92, 246, 0.07), transparent 60%);
 }
 
 /* Glass morphism */
@@ -51,13 +86,49 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+/* Superficie glass base de tarjetas/paneles */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  box-shadow: var(--shadow-float), var(--shadow-inset-top);
+}
+
+/* Superficie interna tenue (bloques de datos dentro de un panel) */
+.surface-subtle {
+  background: linear-gradient(180deg, rgba(248, 250, 252, 0.9) 0%, rgba(241, 245, 249, 0.65) 100%);
+  border: 1px solid rgba(226, 232, 240, 0.9);
+}
+
 /* Modern shadow */
 .shadow-modern {
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--shadow-soft);
 }
 
 .shadow-modern-lg {
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+  box-shadow: var(--shadow-float);
+}
+/* shadow-soft / shadow-float / shadow-lift / shadow-glow-* los genera Tailwind
+   desde el namespace --shadow-* de @theme, por lo que aceptan variantes (hover:). */
+
+/* Numeros de metrica: ancho de digito fijo para que no "salten" al refrescar */
+.num {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+  letter-spacing: -0.02em;
+}
+
+/* Foco accesible uniforme en elementos interactivos no-input */
+.focus-ring:focus-visible {
+  outline: 2px solid #1e40af;
+  outline-offset: 2px;
+  border-radius: 0.75rem;
+}
+
+.focus-ring-light:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.9);
+  outline-offset: 2px;
 }
 
 /* Gradient text */
@@ -97,6 +168,47 @@ body {
 }
 .animate-fade-in-up {
   animation: fade-in-up 0.4s ease-out forwards;
+}
+
+/* Entrada escalonada de tarjetas. --i = indice; sin JS, solo variable inline */
+.animate-rise {
+  animation: fade-in-up 0.42s var(--ease-out-soft) both;
+  animation-delay: calc(var(--i, 0) * 45ms);
+}
+
+/* Listas largas: el navegador omite render fuera de viewport */
+.list-optimized > * {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 190px;
+}
+
+/* Skeleton loader */
+@keyframes shimmer {
+  100% { transform: translateX(100%); }
+}
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: #e9eef5;
+  border-radius: 0.75rem;
+}
+.skeleton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.7), transparent);
+  animation: shimmer 1.4s infinite;
+}
+
+/* Respeta preferencia de movimiento reducido */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 /* Scrollbar */

@@ -8,8 +8,9 @@
 
   let { onNavigate = (view: string, params?: Record<string, unknown>) => {} } = $props();
 
-  let desde = $state('');
-  let hasta = $state('');
+  const today = new Date().toISOString().split('T')[0];
+  let desde = $state(today);
+  let hasta = $state(today);
   let especialista = $state('');
   let consultorio = $state('');
   let estado = $state('');

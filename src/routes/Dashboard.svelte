@@ -4,6 +4,8 @@
   import Badge from '$lib/components/Badge.svelte';
   import OrbLoader from '$lib/components/OrbLoader.svelte';
   import ThiingsIcon from '$lib/components/ThiingsIcon.svelte';
+  import MetricCard from '$lib/components/MetricCard.svelte';
+  import GlassCard from '$lib/components/GlassCard.svelte';
 
   let { onNavigate = (view: string, params?: Record<string, unknown>) => {} } = $props();
 
@@ -38,140 +40,160 @@
   }
 </script>
 
-<div class="space-y-5 md:space-y-6">
-  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+<div class="space-y-6">
+  <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
     <div>
-      <h1 class="text-2xl md:text-3xl font-bold text-gray-900">Dashboard</h1>
-      <p class="text-sm text-gray-500 mt-0.5">Resumen general de la clinica</p>
+      <h1 class="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">Dashboard</h1>
+      <p class="text-sm text-slate-500 mt-1">Resumen general de la clinica</p>
     </div>
     <button
-      class="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-blue-600 bg-blue-50 rounded-xl hover:bg-blue-100 transition-colors self-start"
+      class="group inline-flex items-center gap-2 px-4 py-2.5 self-start rounded-xl focus-ring
+        text-sm font-semibold text-white
+        bg-gradient-to-br from-primary-600 to-primary-700
+        shadow-[var(--shadow-glow-primary)]
+        transition-all duration-200 ease-out
+        hover:from-primary-500 hover:to-primary-700 hover:-translate-y-0.5
+        active:translate-y-0 active:scale-[0.98]
+        disabled:opacity-70 disabled:cursor-wait disabled:translate-y-0"
       onclick={load}
+      disabled={loading}
     >
-      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+      <svg
+        class="w-4 h-4 transition-transform duration-300 ease-out {loading ? 'animate-spin' : 'group-hover:rotate-180'}"
+        fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"
+      >
         <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
       </svg>
-      Actualizar
+      {loading ? 'Actualizando...' : 'Actualizar'}
     </button>
   </div>
 
   {#if loading}
-    <div class="flex justify-center py-16">
-      <OrbLoader size={64} state="working" />
+    <!-- Skeleton con la misma retícula que el contenido real: sin salto de layout -->
+    <div class="space-y-6">
+      <div class="flex justify-center py-6">
+        <OrbLoader size={64} state="working" />
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {#each [0, 1, 2] as i}
+          <div class="skeleton h-[132px] rounded-2xl" style="animation-delay: {i * 80}ms"></div>
+        {/each}
+      </div>
+      <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+        {#each [0, 1, 2] as i}
+          <div class="skeleton h-[112px] rounded-2xl" style="animation-delay: {i * 80}ms"></div>
+        {/each}
+      </div>
     </div>
   {:else if error}
-    <div class="bg-red-50 border border-red-200 text-red-700 px-5 py-4 rounded-2xl">
-      {error}
+    <div class="rounded-2xl border border-red-200/80 bg-red-50/80 backdrop-blur-xl px-5 py-4
+      text-red-800 shadow-[var(--shadow-soft)] flex items-center gap-3">
+      <svg class="w-5 h-5 flex-shrink-0 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      <span class="text-sm font-medium">{error}</span>
     </div>
   {:else if data}
     <!-- Stats principales -->
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-      <button
-        class="bg-gradient-to-br from-blue-600 to-blue-800 rounded-2xl p-4 sm:p-5 text-white text-left hover:shadow-lg hover:scale-[1.02] transition-all duration-200 min-h-[110px]"
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <MetricCard
+        icon="patient"
+        label="Pacientes Activos"
+        value={data.pacientes_activos.toLocaleString()}
+        tone="primary"
+        delay={0}
         onclick={() => onNavigate('pacientes')}
-      >
-        <div class="flex items-center justify-between mb-3">
-          <div class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center overflow-hidden">
-            <ThiingsIcon name="patient" size={26} alt="Pacientes" />
-          </div>
-          <span class="text-3xl sm:text-4xl font-bold">{data.pacientes_activos.toLocaleString()}</span>
-        </div>
-        <p class="text-blue-100 text-sm font-medium">Pacientes Activos</p>
-      </button>
-
-      <button
-        class="bg-gradient-to-br from-emerald-500 to-emerald-700 rounded-2xl p-4 sm:p-5 text-white text-left hover:shadow-lg hover:scale-[1.02] transition-all duration-200 min-h-[110px]"
+      />
+      <MetricCard
+        icon="calendar"
+        label="Citas Hoy"
+        value={data.citas_hoy}
+        tone="health"
+        empty={!data.citas_hoy}
+        hint={data.citas_hoy ? '' : 'Sin citas programadas hoy'}
+        delay={1}
         onclick={() => onNavigate('agenda')}
-      >
-        <div class="flex items-center justify-between mb-3">
-          <div class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center overflow-hidden">
-            <ThiingsIcon name="calendar" size={26} alt="Citas" />
-          </div>
-          <span class="text-3xl sm:text-4xl font-bold">{data.citas_hoy}</span>
-        </div>
-        <p class="text-emerald-100 text-sm font-medium">Citas Hoy</p>
-      </button>
-
-      <button
-        class="bg-gradient-to-br from-purple-500 to-purple-700 rounded-2xl p-4 sm:p-5 text-white text-left hover:shadow-lg hover:scale-[1.02] transition-all duration-200 min-h-[110px]"
+      />
+      <MetricCard
+        icon="calendar-plus"
+        label="Citas Semana"
+        value={data.citas_semana}
+        tone="accent"
+        empty={!data.citas_semana}
+        hint={data.citas_semana ? '' : 'Sin citas esta semana'}
+        delay={2}
         onclick={() => onNavigate('agenda')}
-      >
-        <div class="flex items-center justify-between mb-3">
-          <div class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center overflow-hidden">
-            <ThiingsIcon name="calendar-plus" size={26} alt="Citas Semana" />
-          </div>
-          <span class="text-3xl sm:text-4xl font-bold">{data.citas_semana}</span>
-        </div>
-        <p class="text-purple-100 text-sm font-medium">Citas Semana</p>
-      </button>
+      />
     </div>
 
-    <!-- Stats secundarios -->
-    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
-      <div class="bg-white rounded-2xl p-4 border border-gray-200 hover:shadow-md transition-shadow">
-        <div class="flex items-center gap-2.5 mb-2">
-          <div class="w-9 h-9 rounded-xl bg-indigo-50 flex items-center justify-center overflow-hidden">
-            <ThiingsIcon name="stethoscope" size={20} alt="Citas Manana" />
-          </div>
-          <p class="text-xs sm:text-sm text-gray-500 font-medium">Citas Manana</p>
-        </div>
-        <p class="text-2xl sm:text-3xl font-bold text-gray-900">{data.citas_manana}</p>
-      </div>
-
-      <div class="bg-white rounded-2xl p-4 border border-gray-200 hover:shadow-md transition-shadow">
-        <div class="flex items-center gap-2.5 mb-2">
-          <div class="w-9 h-9 rounded-xl bg-emerald-50 flex items-center justify-center overflow-hidden">
-            <ThiingsIcon name="coins" size={20} alt="Abonos Hoy" />
-          </div>
-          <p class="text-xs sm:text-sm text-gray-500 font-medium">Abonos Hoy</p>
-        </div>
-        <p class="text-2xl sm:text-3xl font-bold text-gray-900">{fmt(data.abonos_hoy)}</p>
-      </div>
-
-      <div class="bg-white rounded-2xl p-4 border border-gray-200 hover:shadow-md transition-shadow col-span-2 sm:col-span-1">
-        <div class="flex items-center gap-2.5 mb-2">
-          <div class="w-9 h-9 rounded-xl bg-teal-50 flex items-center justify-center overflow-hidden">
-            <ThiingsIcon name="dentist" size={20} alt="Nuevos" />
-          </div>
-          <p class="text-xs sm:text-sm text-gray-500 font-medium">Nuevos este Mes</p>
-        </div>
-        <p class="text-2xl sm:text-3xl font-bold text-gray-900">{data.nuevos_mes}</p>
-      </div>
+    <!-- Stats secundarios: mismo lenguaje visual, jerarquia menor -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+      <MetricCard
+        icon="stethoscope"
+        label="Citas Manana"
+        value={data.citas_manana}
+        tone="indigo"
+        empty={!data.citas_manana}
+        hint={data.citas_manana ? '' : 'Agenda libre'}
+        delay={3}
+      />
+      <MetricCard
+        icon="coins"
+        label="Abonos Hoy"
+        value={fmt(data.abonos_hoy)}
+        tone="emerald"
+        empty={!data.abonos_hoy}
+        hint={data.abonos_hoy ? '' : 'Sin abonos registrados'}
+        delay={4}
+      />
+      <MetricCard
+        icon="dentist"
+        label="Nuevos este Mes"
+        value={data.nuevos_mes}
+        tone="teal"
+        empty={!data.nuevos_mes}
+        hint={data.nuevos_mes ? '' : 'Aun sin ingresos'}
+        delay={5}
+        class="col-span-2 sm:col-span-1"
+      />
     </div>
 
     <!-- Proximas citas -->
     {#if data.proximas_citas.length > 0}
-      <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
-        <div class="px-4 sm:px-5 py-3.5 sm:py-4 border-b border-gray-100 flex items-center gap-2.5">
-          <div class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center overflow-hidden">
-            <ThiingsIcon name="calendar" size={18} alt="Citas" />
+      <GlassCard padding="p-0" delay={6} class="overflow-hidden">
+        <div class="px-4 sm:px-5 py-4 border-b border-slate-200/70 flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl bg-primary-600/10 border border-primary-600/15 flex items-center justify-center overflow-hidden">
+            <ThiingsIcon name="calendar" size={20} alt="" />
           </div>
-          <h2 class="font-semibold text-gray-900 text-sm sm:text-base">Proximas Citas</h2>
+          <h2 class="font-semibold tracking-tight text-slate-900 text-sm sm:text-base">Proximas Citas</h2>
+          <span class="num ml-auto text-xs font-semibold text-slate-500 bg-slate-500/10 px-2 py-1 rounded-full">
+            {data.proximas_citas.length}
+          </span>
         </div>
 
         <div class="overflow-x-auto">
           <table class="w-full text-sm">
-            <thead class="bg-gray-50 hidden sm:table-header-group">
+            <thead class="hidden sm:table-header-group bg-slate-50/80 backdrop-blur-sm">
               <tr>
-                <th class="text-left px-5 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wider">Fecha</th>
-                <th class="text-left px-5 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wider">Hora</th>
-                <th class="text-left px-5 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wider">Paciente</th>
-                <th class="text-left px-5 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wider">Procedimiento</th>
-                <th class="text-left px-5 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wider">Estado</th>
+                <th class="text-left px-5 py-3 font-semibold text-slate-500 text-[11px] uppercase tracking-wider">Fecha</th>
+                <th class="text-left px-5 py-3 font-semibold text-slate-500 text-[11px] uppercase tracking-wider">Hora</th>
+                <th class="text-left px-5 py-3 font-semibold text-slate-500 text-[11px] uppercase tracking-wider">Paciente</th>
+                <th class="text-left px-5 py-3 font-semibold text-slate-500 text-[11px] uppercase tracking-wider">Procedimiento</th>
+                <th class="text-left px-5 py-3 font-semibold text-slate-500 text-[11px] uppercase tracking-wider">Estado</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-gray-100">
+            <tbody class="divide-y divide-slate-200/60">
               {#each data.proximas_citas as cita}
-                <tr class="hover:bg-gray-50 cursor-pointer"
+                <tr class="group cursor-pointer odd:bg-white/40 transition-colors duration-150 ease-out hover:bg-primary-600/6"
                     onclick={() => onNavigate('ficha', { ind: cita.paciente })}>
-                  <td class="px-4 sm:px-5 py-3 hidden sm:table-cell">{cita.fecha}</td>
-                  <td class="px-4 sm:px-5 py-3 hidden sm:table-cell">{cita.horas}</td>
-                  <td class="px-4 sm:px-5 py-3 font-medium text-gray-900">{cita.nombres}</td>
-                  <td class="px-4 sm:px-5 py-3 text-gray-600 hidden md:table-cell">{cita.procedimiento}</td>
-                  <td class="px-4 sm:px-5 py-3">
+                  <td class="num px-4 sm:px-5 py-3.5 text-slate-600 hidden sm:table-cell">{cita.fecha}</td>
+                  <td class="num px-4 sm:px-5 py-3.5 text-slate-600 hidden sm:table-cell">{cita.horas}</td>
+                  <td class="px-4 sm:px-5 py-3.5 font-semibold text-slate-900 group-hover:text-primary-700 transition-colors">{cita.nombres}</td>
+                  <td class="px-4 sm:px-5 py-3.5 text-slate-600 hidden md:table-cell">{cita.procedimiento}</td>
+                  <td class="px-4 sm:px-5 py-3.5">
                     <div class="flex items-center gap-2">
-                      <span class="text-xs text-gray-500 sm:hidden">{cita.fecha} {cita.horas}</span>
-                      <Badge {...estadoBadge(cita)} />
+                      <span class="num text-xs text-slate-500 sm:hidden">{cita.fecha} {cita.horas}</span>
+                      <Badge {...estadoBadge(cita)} dot />
                     </div>
                   </td>
                 </tr>
@@ -179,7 +201,7 @@
             </tbody>
           </table>
         </div>
-      </div>
+      </GlassCard>
     {/if}
   {/if}
 </div>

@@ -6,6 +6,10 @@
   import Toast from '$lib/components/Toast.svelte';
   import OrbLoader from '$lib/components/OrbLoader.svelte';
   import ThiingsIcon from '$lib/components/ThiingsIcon.svelte';
+  import CollapsibleSection from '$lib/components/CollapsibleSection.svelte';
+  import DataField from '$lib/components/DataField.svelte';
+  import FieldIcon from '$lib/components/FieldIcon.svelte';
+  import GlassCard from '$lib/components/GlassCard.svelte';
 
   let { ind = 0, onNavigate = (view: string, params?: Record<string, unknown>) => {} } = $props();
 
@@ -141,301 +145,328 @@
   }
 </script>
 
-<div class="space-y-4">
-  <button class="inline-flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-primary-600 transition-colors"
+<div class="space-y-5">
+  <button class="group inline-flex items-center gap-2 px-3 py-2 -ml-1 rounded-xl text-sm font-semibold text-slate-600 focus-ring
+                 transition-all duration-200 ease-out hover:bg-white/70 hover:text-primary-700"
           onclick={() => onNavigate('pacientes')}>
-    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+    <svg class="w-4 h-4 transition-transform duration-200 ease-out group-hover:-translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
       <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
     </svg>
     Volver a Pacientes
   </button>
 
   {#if loading}
-    <div class="bg-white rounded-2xl p-8 shadow-modern border border-gray-100/80 flex justify-center">
+    <GlassCard padding="p-8" class="flex justify-center">
       <OrbLoader size={56} state="working" />
-    </div>
+    </GlassCard>
   {:else if error && !paciente}
-    <div class="bg-red-50 border border-red-200 text-red-700 px-5 py-4 rounded-2xl flex items-center gap-3">
-      <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+    <div class="rounded-2xl border border-red-200/80 bg-red-50/80 backdrop-blur-xl px-5 py-4
+      text-red-800 shadow-[var(--shadow-soft)] flex items-center gap-3">
+      <svg class="w-5 h-5 flex-shrink-0 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
         <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
       </svg>
-      {error}
+      <span class="text-sm font-medium">{error}</span>
     </div>
   {:else if paciente}
-    <div class="bg-white rounded-2xl shadow-modern border border-gray-100/80 overflow-hidden">
-      <div class="bg-gradient-animated p-5 md:p-6 text-white">
-        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+    <GlassCard padding="p-0" class="overflow-hidden">
+      <!-- Banda de identidad. Gradiente oscuro y saturado: texto blanco cumple AA -->
+      <div class="relative overflow-hidden bg-gradient-to-br from-blue-950 via-primary-600 to-indigo-900 p-5 md:p-6 text-white">
+        <span class="pointer-events-none absolute -top-24 -right-12 w-64 h-64 rounded-full bg-white/12 blur-3xl" aria-hidden="true"></span>
+        <span class="pointer-events-none absolute -bottom-24 left-10 w-56 h-56 rounded-full bg-emerald-400/12 blur-3xl" aria-hidden="true"></span>
+
+        <div class="relative flex flex-col sm:flex-row items-start sm:items-center gap-4">
           {#if paciente.tiene_foto}
-            <img src={getFotoUrl(ind)} alt="" class="w-16 h-16 rounded-2xl object-cover border-2 border-white/30 flex-shrink-0" />
+            <img src={getFotoUrl(ind)} alt="" class="w-16 h-16 rounded-2xl object-cover border-2 border-white/40 shadow-float flex-shrink-0" />
           {:else}
-            <div class="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center text-white text-xl font-bold flex-shrink-0">
+            <div class="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-white text-xl font-bold flex-shrink-0">
               {initials(paciente)}
             </div>
           {/if}
           <div class="flex-1 min-w-0">
-            <h1 class="text-xl md:text-2xl font-bold truncate">{nombreCompleto(paciente)}</h1>
-            <div class="flex flex-wrap items-center gap-2 mt-1.5 text-sm text-white/80">
-              <span class="bg-white/15 px-2 py-0.5 rounded-lg">#{paciente.historia}</span>
-              <span>{paciente.identificacion}</span>
-              <Badge {...estadoBadge(paciente.estado)} />
+            <div class="flex items-center gap-2">
+              <ThiingsIcon name={paciente.sexo === 'M' ? 'doctor' : 'patient'} size={24} alt="" />
+              <h1 class="text-xl md:text-2xl font-bold tracking-tight truncate">{nombreCompleto(paciente)}</h1>
+            </div>
+            <div class="flex flex-wrap items-center gap-2 mt-2 text-sm">
+              <span class="num bg-white/20 border border-white/25 px-2.5 py-1 rounded-full text-xs font-semibold">#{paciente.historia}</span>
+              <span class="num text-white/85">{paciente.identificacion}</span>
+              <Badge {...estadoBadge(paciente.estado)} onLight={false} dot />
             </div>
           </div>
-          <div class="text-right bg-white/15 backdrop-blur-sm rounded-xl px-4 py-2">
-            <p class="text-xs text-white/70">Saldo</p>
-            <p class="text-lg font-bold {paciente.saldo && paciente.saldo > 0 ? 'text-red-200' : 'text-green-200'}">{fmt(paciente.saldo)}</p>
+          <div class="text-right bg-white/15 backdrop-blur-md border border-white/25 rounded-xl px-4 py-2.5 self-stretch sm:self-auto">
+            <p class="text-[11px] font-semibold uppercase tracking-wider text-white/75">Saldo</p>
+            <p class="num text-lg font-bold {paciente.saldo && paciente.saldo > 0 ? 'text-rose-100' : 'text-emerald-100'}">{fmt(paciente.saldo)}</p>
           </div>
         </div>
       </div>
 
       <Tabs {tabs} {activeTab} onTabChange={handleTabChange} />
 
-      <div class="p-5 md:p-6">
+      <div class="p-4 sm:p-5 md:p-6">
         {#if loadingTab}
-          <div class="space-y-3 animate-pulse">
-            <div class="h-4 bg-gray-200 rounded w-full"></div>
-            <div class="h-4 bg-gray-200 rounded w-3/4"></div>
-            <div class="h-4 bg-gray-200 rounded w-1/2"></div>
+          <div class="space-y-3">
+            <div class="skeleton h-11 w-full"></div>
+            <div class="skeleton h-11 w-11/12"></div>
+            <div class="skeleton h-11 w-3/4"></div>
+            <div class="skeleton h-11 w-1/2"></div>
           </div>
 
         {:else if activeTab === 'datos'}
-          <div class="space-y-5">
-            <div>
-              <button class="flex items-center gap-2 font-semibold text-gray-900 mb-3" onclick={() => toggleSeccion('datos')}>
-                <svg class="w-4 h-4 transition-transform {expandedSecciones.datos ? 'rotate-90' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                </svg>
-                Identificación y Contacto
-              </button>
-              {#if expandedSecciones.datos}
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-sm bg-gray-50/80 p-4 rounded-xl">
-                  <div><span class="font-medium text-gray-500">Tipo doc:</span> <span class="text-gray-900">{paciente.tdei || '-'}</span></div>
-                  <div><span class="font-medium text-gray-500">Identificación:</span> <span class="text-gray-900">{paciente.identificacion}</span></div>
-                  <div><span class="font-medium text-gray-500">Nacimiento:</span> <span class="text-gray-900">{paciente.fecnac || '-'}</span></div>
-                  <div><span class="font-medium text-gray-500">Edad:</span> <span class="text-gray-900">{paciente.edad || '-'} años</span></div>
-                  <div><span class="font-medium text-gray-500">Sexo:</span> <span class="text-gray-900">{paciente.sexo || '-'}</span></div>
-                  <div><span class="font-medium text-gray-500">Estado civil:</span> <span class="text-gray-900">{paciente.estado_civil || '-'}</span></div>
-                  <div><span class="font-medium text-gray-500">Ocupación:</span> <span class="text-gray-900">{paciente.ocupacion || '-'}</span></div>
-                  <div><span class="font-medium text-gray-500">Nivel educativo:</span> <span class="text-gray-900">{paciente.nivel_educativo || '-'}</span></div>
-                  <div class="sm:col-span-2"><span class="font-medium text-gray-500">Dirección:</span> <span class="text-gray-900">{paciente.direccion_residencia || '-'}</span></div>
-                  <div><span class="font-medium text-gray-500">Ciudad:</span> <span class="text-gray-900">{paciente.ciudad_residencia || '-'}</span></div>
-                  <div><span class="font-medium text-gray-500">Barrio:</span> <span class="text-gray-900">{paciente.barrio || '-'}</span></div>
-                  <div><span class="font-medium text-gray-500">Tel. móvil:</span> <span class="text-gray-900">{paciente.telefono_movil || '-'}</span></div>
-                  <div><span class="font-medium text-gray-500">Tel. residencia:</span> <span class="text-gray-900">{paciente.telefono_residencia1 || '-'}</span></div>
-                  <div><span class="font-medium text-gray-500">Email:</span> <span class="text-gray-900">{paciente.email1 || '-'}</span></div>
-                  <div><span class="font-medium text-gray-500">Fecha inicio:</span> <span class="text-gray-900">{paciente.fecha_inicio || '-'}</span></div>
-                </div>
-              {/if}
-            </div>
+          <div class="space-y-3">
+            <CollapsibleSection
+              title="Identificación y Contacto"
+              iconName="id-card"
+              tone="primary"
+              open={expandedSecciones.datos}
+              ontoggle={() => toggleSeccion('datos')}
+            >
+              <dl class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+                <DataField label="Tipo doc" value={paciente.tdei} iconName="doc" tone="slate" />
+                <DataField label="Identificación" value={paciente.identificacion} iconName="id-card" tone="blue" strong />
+                <DataField label="Nacimiento" value={paciente.fecnac} iconName="cake" tone="violet" />
+                <DataField label="Edad" value="{paciente.edad || '-'} años" iconName="user" tone="indigo" />
+                <DataField label="Sexo" value={paciente.sexo} iconName="user" tone={paciente.sexo === 'M' ? 'blue' : 'pink'} />
+                <DataField label="Estado civil" value={paciente.estado_civil} iconName="heart" tone="rose" />
+                <DataField label="Ocupación" value={paciente.ocupacion_nombre || paciente.ocupacion} iconName="briefcase" tone="amber" />
+                <DataField label="Nivel educativo" value={paciente.nivel_educativo} iconName="academic" tone="violet" />
+                <DataField label="Dirección" value={paciente.direccion_residencia} iconName="home" tone="orange" span="sm:col-span-2" />
+                <DataField
+                  label="Ciudad"
+                  value="{paciente.municipio_nombre || paciente.ciudad_residencia || '-'}{paciente.municipio_departamento ? ' (' + paciente.municipio_departamento + ')' : ''}"
+                  iconName="city"
+                  tone="orange"
+                />
+                <DataField label="Barrio" value={paciente.barrio} iconName="map-pin" tone="orange" />
+                <DataField label="Tel. móvil" value={paciente.telefono_movil} iconName="mobile" tone="teal" />
+                <DataField label="Tel. residencia" value={paciente.telefono_residencia1} iconName="phone" tone="teal" />
+                <DataField label="Email" value={paciente.email1} iconName="mail" tone="sky" span="sm:col-span-2" />
+                <DataField label="Fecha inicio" value={paciente.fecha_inicio} iconName="calendar" tone="emerald" />
+              </dl>
+            </CollapsibleSection>
 
-            <div>
-              <button class="flex items-center gap-2 font-semibold text-gray-900 mb-3" onclick={() => toggleSeccion('familia')}>
-                <svg class="w-4 h-4 transition-transform {expandedSecciones.familia ? 'rotate-90' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                </svg>
-                Familia / Acudientes
-              </button>
-              {#if expandedSecciones.familia}
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-sm bg-gray-50/80 p-4 rounded-xl">
-                  <div><span class="font-medium text-gray-500">Padre:</span> <span class="text-gray-900">{paciente.nombre_padre || '-'}</span></div>
-                  <div><span class="font-medium text-gray-500">Tel. padre:</span> <span class="text-gray-900">{paciente.telefono_padre || '-'}</span></div>
-                  <div><span class="font-medium text-gray-500">Madre:</span> <span class="text-gray-900">{paciente.nombre_madre || '-'}</span></div>
-                  <div><span class="font-medium text-gray-500">Tel. madre:</span> <span class="text-gray-900">{paciente.telefono_madre || '-'}</span></div>
-                  <div><span class="font-medium text-gray-500">Acudiente:</span> <span class="text-gray-900">{paciente.nombre_acudiente || '-'}</span></div>
-                  <div><span class="font-medium text-gray-500">Tel. acudiente:</span> <span class="text-gray-900">{paciente.telefono_acudiente || '-'}</span></div>
-                  <div><span class="font-medium text-gray-500">Cónyuge:</span> <span class="text-gray-900">{paciente.nombre_conyuge || '-'}</span></div>
-                  <div><span class="font-medium text-gray-500">Tel. cónyuge:</span> <span class="text-gray-900">{paciente.telefono_conyuge || '-'}</span></div>
-                  <div><span class="font-medium text-gray-500">Hermanos:</span> <span class="text-gray-900">{paciente.cantidad_hermanos || '-'}</span></div>
-                </div>
-              {/if}
-            </div>
+            <CollapsibleSection
+              title="Familia / Acudientes"
+              iconName="users"
+              tone="violet"
+              open={expandedSecciones.familia}
+              ontoggle={() => toggleSeccion('familia')}
+            >
+              <!-- Nombre = azul/rosa segun rol; telefono = teal en todos, para
+                   que la columna de contacto se lea de un barrido -->
+              <dl class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                <DataField label="Padre" value={paciente.nombre_padre} iconName="user" tone="blue" />
+                <DataField label="Tel. padre" value={paciente.telefono_padre} iconName="phone" tone="teal" />
+                <DataField label="Madre" value={paciente.nombre_madre} iconName="user" tone="pink" />
+                <DataField label="Tel. madre" value={paciente.telefono_madre} iconName="phone" tone="teal" />
+                <DataField label="Acudiente" value={paciente.nombre_acudiente} iconName="users" tone="indigo" />
+                <DataField label="Tel. acudiente" value={paciente.telefono_acudiente} iconName="phone" tone="teal" />
+                <DataField label="Cónyuge" value={paciente.nombre_conyuge} iconName="heart" tone="rose" />
+                <DataField label="Tel. cónyuge" value={paciente.telefono_conyuge} iconName="phone" tone="teal" />
+                <DataField label="Hermanos" value={paciente.cantidad_hermanos} iconName="users" tone="violet" />
+              </dl>
+            </CollapsibleSection>
 
-            <div>
-              <button class="flex items-center gap-2 font-semibold text-gray-900 mb-3" onclick={() => toggleSeccion('info')}>
-                <svg class="w-4 h-4 transition-transform {expandedSecciones.info ? 'rotate-90' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                </svg>
-                Información Adicional
-              </button>
-              {#if expandedSecciones.info}
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-sm bg-gray-50/80 p-4 rounded-xl">
-                  <div><span class="font-medium text-gray-500">Tipo:</span> <span class="text-gray-900">{paciente.tipo || '-'}</span></div>
-                  <div><span class="font-medium text-gray-500">Plan:</span> <span class="text-gray-900">{paciente.plan || '-'}</span></div>
-                  <div><span class="font-medium text-gray-500">Modalidad pago:</span> <span class="text-gray-900">{paciente.modalidad_de_pago || '-'}</span></div>
-                  <div><span class="font-medium text-gray-500">Odontólogo personal:</span> <span class="text-gray-900">{paciente.odontologo_personal || '-'}</span></div>
-                  <div><span class="font-medium text-gray-500">Remitido por:</span> <span class="text-gray-900">{paciente.remitido_por || '-'}</span></div>
-                  <div><span class="font-medium text-gray-500">Cómo nos conoció:</span> <span class="text-gray-900">{paciente.como_supo_de_nosotros || '-'}</span></div>
-                  {#if paciente.observaciones}
-                    <div class="sm:col-span-2 lg:col-span-3"><span class="font-medium text-gray-500">Observaciones:</span> <span class="text-gray-900">{paciente.observaciones}</span></div>
-                  {/if}
-                  {#if paciente.observacion_especial}
-                    <div class="sm:col-span-2 lg:col-span-3"><span class="font-medium text-gray-500">Obs. especiales:</span> <span class="text-gray-900">{paciente.observacion_especial}</span></div>
-                  {/if}
-                </div>
-              {/if}
-            </div>
+            <CollapsibleSection
+              title="Información Adicional"
+              open={expandedSecciones.info}
+              ontoggle={() => toggleSeccion('info')}
+            >
+              <dl class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                <DataField label="Tipo" value={paciente.tipo} iconName="hash" tone="slate" />
+                <DataField label="Plan" value={paciente.plan} iconName="clipboard" tone="indigo" />
+                <DataField label="Modalidad pago" value={paciente.modalidad_de_pago} iconName="card" tone="emerald" />
+                <DataField label="Odontólogo personal" value={paciente.odontologo_personal} iconName="stetho" tone="sky" />
+                <DataField label="Remitido por" value={paciente.remitido_por} iconName="link" tone="violet" />
+                <DataField label="Cómo nos conoció" value={paciente.como_supo_de_nosotros} iconName="megaphone" tone="amber" />
+                {#if paciente.observaciones}
+                  <DataField label="Observaciones" value={paciente.observaciones} iconName="info" tone="slate" span="sm:col-span-2 lg:col-span-3" />
+                {/if}
+                {#if paciente.observacion_especial}
+                  <!-- Ambar: obs. especial es informacion que el clinico debe notar -->
+                  <DataField label="Obs. especiales" value={paciente.observacion_especial} iconName="megaphone" tone="amber" span="sm:col-span-2 lg:col-span-3" />
+                {/if}
+              </dl>
+            </CollapsibleSection>
 
-            <div>
-              <button class="flex items-center gap-2 font-semibold text-gray-900 mb-3" onclick={() => toggleSeccion('tratamiento')}>
-                <svg class="w-4 h-4 transition-transform {expandedSecciones.tratamiento ? 'rotate-90' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                </svg>
-                Plan de Tratamiento
-              </button>
-              {#if expandedSecciones.tratamiento}
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-sm bg-gray-50/80 p-4 rounded-xl">
-                  <div><span class="font-medium text-gray-500">Costo:</span> <span class="text-gray-900 font-semibold">{fmt(paciente.costo_tratamiento)}</span></div>
-                  <div><span class="font-medium text-gray-500">Cuota inicial:</span> <span class="text-gray-900">{fmt(paciente.cuota_inicial1)}</span></div>
-                  <div><span class="font-medium text-gray-500">Nro cuotas:</span> <span class="text-gray-900">{paciente.nocuotas || '-'}</span></div>
-                  <div><span class="font-medium text-gray-500">Valor cuota:</span> <span class="text-gray-900">{fmt(paciente.valor_cuota)}</span></div>
-                  <div class="sm:col-span-2 lg:col-span-4"><span class="font-medium text-gray-500">Plan tratamiento:</span> <span class="text-gray-900">{paciente.plan_tratamiento || paciente.plan_de_tratamiento || '-'}</span></div>
-                </div>
-              {/if}
-            </div>
+            <CollapsibleSection
+              title="Plan de Tratamiento"
+              open={expandedSecciones.tratamiento}
+              ontoggle={() => toggleSeccion('tratamiento')}
+            >
+              <!-- Dinero = esmeralda; conteo = indigo -->
+              <dl class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+                <DataField label="Costo" value={fmt(paciente.costo_tratamiento)} iconName="money" tone="emerald" strong />
+                <DataField label="Cuota inicial" value={fmt(paciente.cuota_inicial1)} iconName="card" tone="emerald" />
+                <DataField label="Nro cuotas" value={paciente.nocuotas} iconName="hash" tone="indigo" />
+                <DataField label="Valor cuota" value={fmt(paciente.valor_cuota)} iconName="money" tone="emerald" />
+                <DataField
+                  label="Plan tratamiento"
+                  value={paciente.plan_tratamiento || paciente.plan_de_tratamiento}
+                  iconName="clipboard"
+                  tone="indigo"
+                  span="sm:col-span-2 lg:col-span-4"
+                />
+              </dl>
+            </CollapsibleSection>
           </div>
 
         {:else if activeTab === 'medico'}
-          <div class="space-y-5">
-            <div>
-              <button class="flex items-center gap-2 font-semibold text-gray-900 mb-3" onclick={() => toggleSeccion('antecedentes')}>
-                <svg class="w-4 h-4 transition-transform {expandedSecciones.antecedentes ? 'rotate-90' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                </svg>
-                Antecedentes Médicos
-              </button>
-              {#if expandedSecciones.antecedentes}
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm bg-gray-50/80 p-4 rounded-xl">
-                  <div><span class="font-medium text-gray-500">Padece enfermedad:</span> <span class="text-gray-900">{paciente.padece || '-'}</span></div>
-                  <div><span class="font-medium text-gray-500">Cuál:</span> <span class="text-gray-900">{paciente.cual || '-'}</span></div>
-                  <div><span class="font-medium text-gray-500">Recibe medicamento:</span> <span class="text-gray-900">{paciente.recibe_medicamento || '-'}</span></div>
-                  <div><span class="font-medium text-gray-500">Cuál medicamento:</span> <span class="text-gray-900">{paciente.cual_medicamento || '-'}</span></div>
-                  {#if paciente.padecimientos}
-                    {@const padecimientos = parsePadecimientos(paciente.padecimientos)}
-                    <div class="sm:col-span-2">
-                      <span class="font-medium text-gray-500">Padecimientos:</span>
-                      {#if padecimientos.length > 0}
-                        <div class="mt-2 overflow-x-auto">
-                          <table class="w-full text-xs border border-gray-200 rounded-xl overflow-hidden">
-                            <thead class="bg-gray-100">
-                              <tr>
-                                <th class="px-3 py-1.5 text-left font-medium text-gray-600 border-b">#</th>
-                                <th class="px-3 py-1.5 text-left font-medium text-gray-600 border-b">Enfermedad</th>
-                                <th class="px-3 py-1.5 text-center font-medium text-gray-600 border-b w-12">SI</th>
-                                <th class="px-3 py-1.5 text-center font-medium text-gray-600 border-b w-12">NO</th>
+          <div class="space-y-3">
+            <CollapsibleSection
+              title="Antecedentes Médicos"
+              open={expandedSecciones.antecedentes}
+              ontoggle={() => toggleSeccion('antecedentes')}
+            >
+              <!-- Rojo/rosa = alerta clinica (enfermedad, medicacion): el color
+                   es la senal, no adorno. Se apaga a slate cuando el dato es
+                   negativo o esta vacio, para no gritar sin motivo. -->
+              <dl class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <DataField
+                  label="Padece enfermedad"
+                  value={paciente.padece}
+                  iconName="heart"
+                  tone={paciente.padece && paciente.padece.trim().toUpperCase().startsWith('S') ? 'red' : 'slate'}
+                />
+                <DataField label="Cuál" value={paciente.cual} iconName="clipboard" tone={paciente.cual ? 'rose' : 'slate'} />
+                <DataField
+                  label="Recibe medicamento"
+                  value={paciente.recibe_medicamento}
+                  iconName="pill"
+                  tone={paciente.recibe_medicamento && paciente.recibe_medicamento.trim().toUpperCase().startsWith('S') ? 'red' : 'slate'}
+                />
+                <DataField label="Cuál medicamento" value={paciente.cual_medicamento} iconName="pill" tone={paciente.cual_medicamento ? 'rose' : 'slate'} />
+                {#if paciente.padecimientos}
+                  {@const padecimientos = parsePadecimientos(paciente.padecimientos)}
+                  <div class="sm:col-span-2 rounded-xl bg-white/70 border border-white/80 px-3 py-2.5">
+                    <dt class="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                      <span class="w-7 h-7 rounded-lg border bg-rose-500/12 border-rose-500/20 text-rose-600
+                                   flex items-center justify-center flex-shrink-0 [&_svg]:w-4 [&_svg]:h-4" aria-hidden="true">
+                        <FieldIcon name="clipboard" />
+                      </span>
+                      Padecimientos
+                    </dt>
+                    {#if padecimientos.length > 0}
+                      <div class="mt-2 overflow-x-auto rounded-xl border border-slate-200/80">
+                        <table class="w-full text-xs">
+                          <thead class="bg-slate-50/90">
+                            <tr>
+                              <th class="px-3 py-2 text-left font-semibold text-slate-500 uppercase tracking-wider text-[10px]">#</th>
+                              <th class="px-3 py-2 text-left font-semibold text-slate-500 uppercase tracking-wider text-[10px]">Enfermedad</th>
+                              <th class="px-3 py-2 text-center font-semibold text-slate-500 uppercase tracking-wider text-[10px] w-14">SI</th>
+                              <th class="px-3 py-2 text-center font-semibold text-slate-500 uppercase tracking-wider text-[10px] w-14">NO</th>
+                            </tr>
+                          </thead>
+                          <tbody class="divide-y divide-slate-200/60">
+                            {#each padecimientos as p}
+                              <tr class="odd:bg-white/50 transition-colors duration-150 ease-out hover:bg-primary-600/6">
+                                <td class="num px-3 py-1.5 text-slate-500">{p.num}</td>
+                                <td class="px-3 py-1.5 text-slate-800">{p.enfermedad}</td>
+                                <td class="px-3 py-1.5 text-center">
+                                  {#if p.si}
+                                    <span class="inline-flex items-center justify-center w-5 h-5 rounded-md bg-emerald-500/12 border border-emerald-600/25 text-emerald-700 text-[11px] font-bold">✓</span>
+                                  {/if}
+                                </td>
+                                <td class="px-3 py-1.5 text-center">
+                                  {#if p.no}
+                                    <span class="inline-flex items-center justify-center w-5 h-5 rounded-md bg-red-500/12 border border-red-600/25 text-red-700 text-[11px] font-bold">✗</span>
+                                  {/if}
+                                </td>
                               </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-100">
-                              {#each padecimientos as p}
-                                <tr class="hover:bg-gray-50">
-                                  <td class="px-3 py-1 text-gray-500">{p.num}</td>
-                                  <td class="px-3 py-1 text-gray-800">{p.enfermedad}</td>
-                                  <td class="px-3 py-1 text-center">
-                                    {#if p.si}
-                                      <span class="inline-block w-4 h-4 rounded bg-green-100 text-green-700 text-xs font-bold leading-4">✓</span>
-                                    {/if}
-                                  </td>
-                                  <td class="px-3 py-1 text-center">
-                                    {#if p.no}
-                                      <span class="inline-block w-4 h-4 rounded bg-red-100 text-red-700 text-xs font-bold leading-4">✗</span>
-                                    {/if}
-                                  </td>
-                                </tr>
-                              {/each}
-                            </tbody>
-                          </table>
-                        </div>
-                      {:else}
-                        <span class="ml-2 text-gray-500">{paciente.padecimientos}</span>
-                      {/if}
-                    </div>
-                  {/if}
-                  {#if paciente.observaciones_medicas}
-                    <div class="sm:col-span-2"><span class="font-medium text-gray-500">Obs. médicas:</span> <span class="text-gray-900">{paciente.observaciones_medicas}</span></div>
-                  {/if}
-                </div>
-              {/if}
-            </div>
+                            {/each}
+                          </tbody>
+                        </table>
+                      </div>
+                    {:else}
+                      <dd class="mt-0.5 text-sm text-slate-700">{paciente.padecimientos}</dd>
+                    {/if}
+                  </div>
+                {/if}
+                {#if paciente.observaciones_medicas}
+                  <DataField label="Obs. médicas" value={paciente.observaciones_medicas} iconName="stetho" tone="sky" span="sm:col-span-2" />
+                {/if}
+              </dl>
+            </CollapsibleSection>
 
-            <div>
-              <button class="flex items-center gap-2 font-semibold text-gray-900 mb-3" onclick={() => toggleSeccion('habitos')}>
-                <svg class="w-4 h-4 transition-transform {expandedSecciones.habitos ? 'rotate-90' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                </svg>
-                Hábitos y Examen Clínico
-              </button>
-              {#if expandedSecciones.habitos}
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-sm bg-gray-50/80 p-4 rounded-xl">
-                  <div><span class="font-medium text-gray-500">Cepilla:</span> <span class="text-gray-900">{paciente.cepilla || '-'}</span></div>
-                  <div><span class="font-medium text-gray-500">Usa seda:</span> <span class="text-gray-900">{paciente.usa_seda || '-'}</span></div>
-                  {#if paciente.habitos}
-                    <div class="sm:col-span-2 lg:col-span-3"><span class="font-medium text-gray-500">Hábitos:</span> <span class="text-gray-900">{paciente.habitos}</span></div>
-                  {/if}
-                  <div><span class="font-medium text-gray-500">Relación canina:</span> <span class="text-gray-900">{paciente.relacion_canina || '-'}</span></div>
-                  <div><span class="font-medium text-gray-500">Relación molar:</span> <span class="text-gray-900">{paciente.relacion_molar || '-'}</span></div>
-                  <div><span class="font-medium text-gray-500">Overjet:</span> <span class="text-gray-900">{paciente.overjet || '-'}</span></div>
-                  <div><span class="font-medium text-gray-500">Overbite:</span> <span class="text-gray-900">{paciente.overbite || '-'}</span></div>
-                  <div><span class="font-medium text-gray-500">Mordida abierta:</span> <span class="text-gray-900">{paciente.mordida_abierta || '-'}</span></div>
-                  <div><span class="font-medium text-gray-500">Mordida cruzada:</span> <span class="text-gray-900">{paciente.mordida_cruzada || '-'}</span></div>
-                  <div><span class="font-medium text-gray-500">Diastemas:</span> <span class="text-gray-900">{paciente.diastemas || '-'}</span></div>
-                  <div><span class="font-medium text-gray-500">Dientes ausentes:</span> <span class="text-gray-900">{paciente.dientes_ausentes || '-'}</span></div>
-                  <div><span class="font-medium text-gray-500">Higiene oral:</span> <span class="text-gray-900">{paciente.higiene_oral || '-'}</span></div>
-                  <div><span class="font-medium text-gray-500">Caries:</span> <span class="text-gray-900">{paciente.caries || '-'}</span></div>
-                  <div><span class="font-medium text-gray-500">Periodonto:</span> <span class="text-gray-900">{paciente.peridonto || '-'}</span></div>
-                </div>
-              {/if}
-            </div>
+            <CollapsibleSection
+              title="Hábitos y Examen Clínico"
+              open={expandedSecciones.habitos}
+              ontoggle={() => toggleSeccion('habitos')}
+            >
+              <!-- Higiene = esmeralda (habito bueno); mediciones oclusales =
+                   sky/indigo; caries y periodonto = ambar/rosa (hallazgo) -->
+              <dl class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                <DataField label="Cepilla" value={paciente.cepilla} iconName="sparkles" tone="emerald" />
+                <DataField label="Usa seda" value={paciente.usa_seda} iconName="sparkles" tone="emerald" />
+                {#if paciente.habitos}
+                  <DataField label="Hábitos" value={paciente.habitos} iconName="info" tone="amber" span="sm:col-span-2 lg:col-span-3" />
+                {/if}
+                <DataField label="Relación canina" value={paciente.relacion_canina} iconName="beaker" tone="sky" />
+                <DataField label="Relación molar" value={paciente.relacion_molar} iconName="beaker" tone="sky" />
+                <DataField label="Overjet" value={paciente.overjet} iconName="scale" tone="indigo" />
+                <DataField label="Overbite" value={paciente.overbite} iconName="scale" tone="indigo" />
+                <DataField label="Mordida abierta" value={paciente.mordida_abierta} iconName="beaker" tone="violet" />
+                <DataField label="Mordida cruzada" value={paciente.mordida_cruzada} iconName="beaker" tone="violet" />
+                <DataField label="Diastemas" value={paciente.diastemas} iconName="hash" tone="slate" />
+                <DataField label="Dientes ausentes" value={paciente.dientes_ausentes} iconName="hash" tone="rose" />
+                <DataField label="Higiene oral" value={paciente.higiene_oral} iconName="sparkles" tone="emerald" />
+                <DataField label="Caries" value={paciente.caries} iconName="pill" tone="amber" />
+                <DataField label="Periodonto" value={paciente.peridonto} iconName="heart" tone="rose" />
+              </dl>
+            </CollapsibleSection>
 
-            <div>
-              <button class="flex items-center gap-2 font-semibold text-gray-900 mb-3" onclick={() => toggleSeccion('diagnosticos')}>
-                <svg class="w-4 h-4 transition-transform {expandedSecciones.diagnosticos ? 'rotate-90' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                </svg>
-                Diagnósticos
-              </button>
-              {#if expandedSecciones.diagnosticos}
-                <div class="space-y-2 text-sm bg-gray-50/80 p-4 rounded-xl">
-                  {#if paciente.diagnostico_medico_general}
-                    <div><span class="font-medium text-gray-500">Médico general:</span> <span class="text-gray-900">{paciente.diagnostico_medico_general}</span></div>
-                  {/if}
-                  {#if paciente.diagnostico_intraoral}
-                    <div><span class="font-medium text-gray-500">Intraoral:</span> <span class="text-gray-900">{paciente.diagnostico_intraoral}</span></div>
-                  {/if}
-                  {#if paciente.diagnostico_dental}
-                    <div><span class="font-medium text-gray-500">Dental:</span> <span class="text-gray-900">{paciente.diagnostico_dental}</span></div>
-                  {/if}
-                  {#if paciente.diagnostico_periodontal}
-                    <div><span class="font-medium text-gray-500">Periodontal:</span> <span class="text-gray-900">{paciente.diagnostico_periodontal}</span></div>
-                  {/if}
-                  {#if paciente.diagnostico_endodontico}
-                    <div><span class="font-medium text-gray-500">Endodóntico:</span> <span class="text-gray-900">{paciente.diagnostico_endodontico}</span></div>
-                  {/if}
-                </div>
-              {/if}
-            </div>
+            <CollapsibleSection
+              title="Diagnósticos"
+              open={expandedSecciones.diagnosticos}
+              ontoggle={() => toggleSeccion('diagnosticos')}
+            >
+              <!-- Un tono por area diagnostica: distingue las cinco lineas sin
+                   depender de leer la etiqueta -->
+              <dl class="grid grid-cols-1 gap-2">
+                {#if paciente.diagnostico_medico_general}
+                  <DataField label="Médico general" value={paciente.diagnostico_medico_general} iconName="stetho" tone="sky" />
+                {/if}
+                {#if paciente.diagnostico_intraoral}
+                  <DataField label="Intraoral" value={paciente.diagnostico_intraoral} iconName="beaker" tone="violet" />
+                {/if}
+                {#if paciente.diagnostico_dental}
+                  <DataField label="Dental" value={paciente.diagnostico_dental} iconName="tooth" tone="indigo" />
+                {/if}
+                {#if paciente.diagnostico_periodontal}
+                  <DataField label="Periodontal" value={paciente.diagnostico_periodontal} iconName="heart" tone="rose" />
+                {/if}
+                {#if paciente.diagnostico_endodontico}
+                  <DataField label="Endodóntico" value={paciente.diagnostico_endodontico} iconName="pill" tone="amber" />
+                {/if}
+              </dl>
+            </CollapsibleSection>
           </div>
 
         {:else if activeTab === 'citas'}
           {#if citas.length > 0}
             <div class="mb-6">
-              <h3 class="font-semibold text-gray-900 mb-3">Citas ({citas.length})</h3>
-              <div class="overflow-x-auto table-responsive">
+              <div class="flex items-center gap-2.5 mb-3">
+                <h3 class="text-sm font-semibold tracking-tight text-slate-900">Citas</h3>
+                <span class="num text-xs font-semibold text-slate-500 bg-slate-500/10 px-2 py-0.5 rounded-full">{citas.length}</span>
+              </div>
+              <div class="overflow-x-auto table-responsive rounded-xl border border-slate-200/80">
                 <table class="w-full text-sm">
-                  <thead class="bg-gray-50/80">
+                  <thead class="bg-slate-50/90 backdrop-blur-sm sm:sticky sm:top-0 sm:z-10">
                     <tr>
-                      <th class="text-left px-4 py-2.5 font-semibold text-gray-600 text-xs uppercase tracking-wider">Fecha</th>
-                      <th class="text-left px-4 py-2.5 font-semibold text-gray-600 text-xs uppercase tracking-wider">Hora</th>
-                      <th class="text-left px-4 py-2.5 font-semibold text-gray-600 text-xs uppercase tracking-wider">Procedimiento</th>
-                      <th class="text-left px-4 py-2.5 font-semibold text-gray-600 text-xs uppercase tracking-wider">Especialista</th>
-                      <th class="text-left px-4 py-2.5 font-semibold text-gray-600 text-xs uppercase tracking-wider">Estado</th>
+                      <th class="text-left px-4 py-3 font-semibold text-slate-500 text-[11px] uppercase tracking-wider">Fecha</th>
+                      <th class="text-left px-4 py-3 font-semibold text-slate-500 text-[11px] uppercase tracking-wider">Hora</th>
+                      <th class="text-left px-4 py-3 font-semibold text-slate-500 text-[11px] uppercase tracking-wider">Procedimiento</th>
+                      <th class="text-left px-4 py-3 font-semibold text-slate-500 text-[11px] uppercase tracking-wider">Especialista</th>
+                      <th class="text-left px-4 py-3 font-semibold text-slate-500 text-[11px] uppercase tracking-wider">Estado</th>
                     </tr>
                   </thead>
-                  <tbody class="divide-y divide-gray-100/80">
+                  <tbody class="divide-y divide-slate-200/60">
                     {#each citas as c}
-                      <tr class="hover:bg-gray-50/50">
-                        <td class="px-4 py-2.5 text-gray-700" data-label="Fecha">{c.fecha}</td>
-                        <td class="px-4 py-2.5 text-gray-700" data-label="Hora">{c.horas}</td>
-                        <td class="px-4 py-2.5 font-medium text-gray-900" data-label="Procedimiento">{c.procedimiento || '-'}</td>
-                        <td class="px-4 py-2.5 text-gray-700" data-label="Especialista">{c.especialista || '-'}</td>
-                        <td class="px-4 py-2.5" data-label="Estado"><Badge {...citaBadge(c)} /></td>
+                      <tr class="odd:bg-white/50 transition-colors duration-150 ease-out hover:bg-primary-600/6">
+                        <td class="num px-4 py-3 text-slate-600" data-label="Fecha">{c.fecha}</td>
+                        <td class="num px-4 py-3 text-slate-600" data-label="Hora">{c.horas}</td>
+                        <td class="px-4 py-3 font-semibold text-slate-900" data-label="Procedimiento">{c.procedimiento || '-'}</td>
+                        <td class="px-4 py-3 text-slate-600" data-label="Especialista">{c.especialista || '-'}</td>
+                        <td class="px-4 py-3" data-label="Estado"><Badge {...citaBadge(c)} dot /></td>
                       </tr>
                     {/each}
                   </tbody>
@@ -446,28 +477,31 @@
 
           {#if canceladas.length > 0}
             <div>
-              <h3 class="font-semibold text-gray-900 mb-3">Citas Canceladas ({canceladas.length})</h3>
-              <div class="overflow-x-auto table-responsive">
+              <div class="flex items-center gap-2.5 mb-3">
+                <h3 class="text-sm font-semibold tracking-tight text-slate-900">Citas Canceladas</h3>
+                <span class="num text-xs font-semibold text-red-700 bg-red-500/12 border border-red-600/20 px-2 py-0.5 rounded-full">{canceladas.length}</span>
+              </div>
+              <div class="overflow-x-auto table-responsive rounded-xl border border-slate-200/80">
                 <table class="w-full text-sm">
-                  <thead class="bg-gray-50/80">
+                  <thead class="bg-slate-50/90 backdrop-blur-sm sm:sticky sm:top-0 sm:z-10">
                     <tr>
-                      <th class="text-left px-4 py-2.5 font-semibold text-gray-600 text-xs uppercase tracking-wider">Fecha</th>
-                      <th class="text-left px-4 py-2.5 font-semibold text-gray-600 text-xs uppercase tracking-wider">Hora</th>
-                      <th class="text-left px-4 py-2.5 font-semibold text-gray-600 text-xs uppercase tracking-wider">Procedimiento</th>
-                      <th class="text-left px-4 py-2.5 font-semibold text-gray-600 text-xs uppercase tracking-wider">Especialista</th>
-                      <th class="text-left px-4 py-2.5 font-semibold text-gray-600 text-xs uppercase tracking-wider">Borrada por</th>
-                      <th class="text-left px-4 py-2.5 font-semibold text-gray-600 text-xs uppercase tracking-wider">Fecha borrado</th>
+                      <th class="text-left px-4 py-3 font-semibold text-slate-500 text-[11px] uppercase tracking-wider">Fecha</th>
+                      <th class="text-left px-4 py-3 font-semibold text-slate-500 text-[11px] uppercase tracking-wider">Hora</th>
+                      <th class="text-left px-4 py-3 font-semibold text-slate-500 text-[11px] uppercase tracking-wider">Procedimiento</th>
+                      <th class="text-left px-4 py-3 font-semibold text-slate-500 text-[11px] uppercase tracking-wider">Especialista</th>
+                      <th class="text-left px-4 py-3 font-semibold text-slate-500 text-[11px] uppercase tracking-wider">Borrada por</th>
+                      <th class="text-left px-4 py-3 font-semibold text-slate-500 text-[11px] uppercase tracking-wider">Fecha borrado</th>
                     </tr>
                   </thead>
-                  <tbody class="divide-y divide-gray-100/80">
+                  <tbody class="divide-y divide-slate-200/60">
                     {#each canceladas as c}
-                      <tr class="hover:bg-gray-50/50">
-                        <td class="px-4 py-2.5 text-gray-700" data-label="Fecha">{c.fecha}</td>
-                        <td class="px-4 py-2.5 text-gray-700" data-label="Hora">{c.horas}</td>
-                        <td class="px-4 py-2.5 text-gray-700" data-label="Procedimiento">{c.procedimiento || '-'}</td>
-                        <td class="px-4 py-2.5 text-gray-700" data-label="Especialista">{c.especialista || '-'}</td>
-                        <td class="px-4 py-2.5 text-gray-700" data-label="Borrada por">{c.borradopor || '-'}</td>
-                        <td class="px-4 py-2.5 text-gray-700" data-label="Fecha borrado">{c.fechaborra || '-'}</td>
+                      <tr class="odd:bg-white/50 transition-colors duration-150 ease-out hover:bg-red-500/6">
+                        <td class="num px-4 py-3 text-slate-600" data-label="Fecha">{c.fecha}</td>
+                        <td class="num px-4 py-3 text-slate-600" data-label="Hora">{c.horas}</td>
+                        <td class="px-4 py-3 text-slate-700" data-label="Procedimiento">{c.procedimiento || '-'}</td>
+                        <td class="px-4 py-3 text-slate-600" data-label="Especialista">{c.especialista || '-'}</td>
+                        <td class="px-4 py-3 text-slate-600" data-label="Borrada por">{c.borradopor || '-'}</td>
+                        <td class="num px-4 py-3 text-slate-600" data-label="Fecha borrado">{c.fechaborra || '-'}</td>
                       </tr>
                     {/each}
                   </tbody>
@@ -477,41 +511,51 @@
           {/if}
 
           {#if citas.length === 0 && canceladas.length === 0}
-            <div class="text-center py-12">
-              <svg class="w-12 h-12 text-gray-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
-              </svg>
-              <p class="text-gray-400">No hay citas registradas</p>
+            <div class="rounded-2xl surface-subtle px-6 py-14 text-center">
+              <div class="mx-auto w-14 h-14 rounded-2xl bg-slate-500/8 border border-slate-500/12 flex items-center justify-center mb-4">
+                <svg class="w-7 h-7 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+                </svg>
+              </div>
+              <p class="text-sm font-semibold text-slate-700">No hay citas registradas</p>
+              <p class="mt-1 text-sm text-slate-500">Este paciente aun no tiene citas en el historial.</p>
             </div>
           {/if}
 
         {:else if activeTab === 'evoluciones'}
           {#if evoluciones.length > 0}
-            <div class="space-y-3">
-              {#each evoluciones as evo}
-                <div class="border border-gray-200/80 rounded-xl p-4 hover:bg-gray-50/50 transition-colors">
+            <div class="space-y-3 list-optimized">
+              {#each evoluciones as evo, i}
+                <!-- Linea de tiempo: barra de acento a la izquierda -->
+                <div
+                  class="relative rounded-xl surface-subtle p-4 pl-5 overflow-hidden animate-rise
+                    transition-[background-color,box-shadow] duration-200 ease-out hover:bg-white/85 hover:shadow-[var(--shadow-soft)]"
+                  style="--i: {i % 12}"
+                >
+                  <span class="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-primary-600 to-accent-600" aria-hidden="true"></span>
+
                   <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
                     <div class="flex flex-wrap items-center gap-2">
-                      <span class="font-medium text-gray-900">{evo.fecha}</span>
-                      <span class="text-gray-400">{evo.hora}</span>
+                      <span class="num font-semibold text-slate-900">{evo.fecha}</span>
+                      <span class="num text-sm text-slate-500">{evo.hora}</span>
                       <Badge text={evo.procedimiento || 'N/A'} color="blue" />
                     </div>
-                    <span class="text-sm text-gray-500">{evo.profesional || evo.personal_que_atiende || ''}</span>
+                    <span class="text-sm text-slate-500">{evo.profesional || evo.personal_que_atiende || ''}</span>
                   </div>
 
                   {#if evo.mevolucion}
-                    <p class="text-sm text-gray-700 mb-2">{evo.mevolucion}</p>
+                    <p class="text-sm leading-relaxed text-slate-700">{evo.mevolucion}</p>
                   {/if}
 
                   {#if evo.diagnostico_principal || evo.diagnostico_dental}
-                    <div class="mt-2 text-xs text-gray-600">
-                      {#if evo.diagnostico_principal}<span class="font-medium">Dx:</span> {evo.diagnostico_principal}{/if}
+                    <div class="mt-2.5 text-xs text-slate-600">
+                      {#if evo.diagnostico_principal}<span class="font-semibold text-slate-500">Dx:</span> {evo.diagnostico_principal}{/if}
                       {#if evo.diagnostico_dental} · {evo.diagnostico_dental}{/if}
                     </div>
                   {/if}
 
                   {#if evo.valor_consulta || evo.valor_copago}
-                    <div class="mt-2 text-xs text-gray-500">
+                    <div class="num mt-2.5 text-xs text-slate-500">
                       Consulta: {fmt(evo.valor_consulta)} · Copago: {fmt(evo.valor_copago)}
                     </div>
                   {/if}
@@ -519,11 +563,14 @@
               {/each}
             </div>
           {:else}
-            <div class="text-center py-12">
-              <svg class="w-12 h-12 text-gray-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
-              </svg>
-              <p class="text-gray-400">No hay evoluciones registradas</p>
+            <div class="rounded-2xl surface-subtle px-6 py-14 text-center">
+              <div class="mx-auto w-14 h-14 rounded-2xl bg-slate-500/8 border border-slate-500/12 flex items-center justify-center mb-4">
+                <svg class="w-7 h-7 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                </svg>
+              </div>
+              <p class="text-sm font-semibold text-slate-700">No hay evoluciones registradas</p>
+              <p class="mt-1 text-sm text-slate-500">Las notas de evolucion apareceran aqui.</p>
             </div>
           {/if}
 
@@ -531,21 +578,22 @@
           <div class="space-y-6">
             {#if pagos.length > 0}
               <div>
-                <h3 class="font-semibold text-gray-900 mb-3">Plan de Pagos</h3>
+                <h3 class="text-sm font-semibold tracking-tight text-slate-900 mb-3">Plan de Pagos</h3>
                 <div class="space-y-3">
-                  {#each pagos as pg}
-                    <div class="border border-gray-200/80 rounded-xl p-4">
-                      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-sm">
-                        <div><span class="font-medium text-gray-500">Tipo:</span> <span class="text-gray-900">{pg.tipo || '-'}</span></div>
-                        <div><span class="font-medium text-gray-500">Fecha:</span> <span class="text-gray-900">{pg.fecha || '-'}</span></div>
-                        <div><span class="font-medium text-gray-500">Costo tratamiento:</span> <span class="text-gray-900 font-semibold">{fmt(parseFloat(pg.costo_tratamiento || '0'))}</span></div>
-                        <div><span class="font-medium text-gray-500">Cuota inicial:</span> <span class="text-gray-900">{fmt(parseFloat(String(pg.cuota_inicial1 || '0')))}</span></div>
-                        <div><span class="font-medium text-gray-500">Nro cuotas:</span> <span class="text-gray-900">{pg.nocuotas || pg.ncuotas || '-'}</span></div>
-                        <div><span class="font-medium text-gray-500">Valor cuota:</span> <span class="text-gray-900">{fmt(pg.valor_cuota)}</span></div>
-                        <div><span class="font-medium text-gray-500">Cancelado:</span>
-                          <Badge text={pg.cancelado === 'S' ? 'Sí' : 'No'} color={pg.cancelado === 'S' ? 'green' : 'yellow'} />
-                        </div>
-                      </div>
+                  {#each pagos as pg, i}
+                    <div class="rounded-xl surface-subtle p-4 animate-rise" style="--i: {i % 12}">
+                      <dl class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+                        <DataField label="Tipo" value={pg.tipo} iconName="hash" tone="slate" />
+                        <DataField label="Fecha" value={pg.fecha} iconName="calendar" tone="violet" />
+                        <DataField label="Costo tratamiento" value={fmt(parseFloat(pg.costo_tratamiento || '0'))} iconName="money" tone="emerald" strong />
+                        <DataField label="Cuota inicial" value={fmt(parseFloat(String(pg.cuota_inicial1 || '0')))} iconName="card" tone="emerald" />
+                        <DataField label="Nro cuotas" value={pg.nocuotas || pg.ncuotas} iconName="hash" tone="indigo" />
+                        <DataField label="Valor cuota" value={fmt(pg.valor_cuota)} iconName="money" tone="emerald" />
+                        <!-- Cancelado: el chip sigue al estado real del pago -->
+                        <DataField label="Cancelado" iconName="receipt" tone={pg.cancelado === 'S' ? 'emerald' : 'amber'}>
+                          <Badge text={pg.cancelado === 'S' ? 'Sí' : 'No'} color={pg.cancelado === 'S' ? 'green' : 'yellow'} dot />
+                        </DataField>
+                      </dl>
                     </div>
                   {/each}
                 </div>
@@ -554,26 +602,29 @@
 
             {#if abonos.length > 0}
               <div>
-                <h3 class="font-semibold text-gray-900 mb-3">Abonos ({abonos.length})</h3>
-                <div class="overflow-x-auto table-responsive">
+                <div class="flex items-center gap-2.5 mb-3">
+                  <h3 class="text-sm font-semibold tracking-tight text-slate-900">Abonos</h3>
+                  <span class="num text-xs font-semibold text-health-700 bg-health-500/12 border border-health-600/20 px-2 py-0.5 rounded-full">{abonos.length}</span>
+                </div>
+                <div class="overflow-x-auto table-responsive rounded-xl border border-slate-200/80">
                   <table class="w-full text-sm">
-                    <thead class="bg-gray-50/80">
+                    <thead class="bg-slate-50/90 backdrop-blur-sm sm:sticky sm:top-0 sm:z-10">
                       <tr>
-                        <th class="text-left px-4 py-2.5 font-semibold text-gray-600 text-xs uppercase tracking-wider">Fecha</th>
-                        <th class="text-left px-4 py-2.5 font-semibold text-gray-600 text-xs uppercase tracking-wider">Valor</th>
-                        <th class="text-left px-4 py-2.5 font-semibold text-gray-600 text-xs uppercase tracking-wider">Forma de pago</th>
-                        <th class="text-left px-4 py-2.5 font-semibold text-gray-600 text-xs uppercase tracking-wider">Doctor</th>
-                        <th class="text-left px-4 py-2.5 font-semibold text-gray-600 text-xs uppercase tracking-wider">Recibo</th>
+                        <th class="text-left px-4 py-3 font-semibold text-slate-500 text-[11px] uppercase tracking-wider">Fecha</th>
+                        <th class="text-left px-4 py-3 font-semibold text-slate-500 text-[11px] uppercase tracking-wider">Valor</th>
+                        <th class="text-left px-4 py-3 font-semibold text-slate-500 text-[11px] uppercase tracking-wider">Forma de pago</th>
+                        <th class="text-left px-4 py-3 font-semibold text-slate-500 text-[11px] uppercase tracking-wider">Doctor</th>
+                        <th class="text-left px-4 py-3 font-semibold text-slate-500 text-[11px] uppercase tracking-wider">Recibo</th>
                       </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-100/80">
+                    <tbody class="divide-y divide-slate-200/60">
                       {#each abonos as a}
-                        <tr class="hover:bg-gray-50/50">
-                          <td class="px-4 py-2.5 text-gray-700" data-label="Fecha">{a.fecha}</td>
-                          <td class="px-4 py-2.5 font-semibold text-health-600" data-label="Valor">{fmt(a.valor_abono)}</td>
-                          <td class="px-4 py-2.5 text-gray-700" data-label="Forma de pago">{a.forma_de_pago || '-'}</td>
-                          <td class="px-4 py-2.5 text-gray-700" data-label="Doctor">{a.doctor || '-'}</td>
-                          <td class="px-4 py-2.5 text-gray-700" data-label="Recibo">{a.recibo || '-'}</td>
+                        <tr class="odd:bg-white/50 transition-colors duration-150 ease-out hover:bg-health-500/6">
+                          <td class="num px-4 py-3 text-slate-600" data-label="Fecha">{a.fecha}</td>
+                          <td class="num px-4 py-3 font-bold text-health-700" data-label="Valor">{fmt(a.valor_abono)}</td>
+                          <td class="px-4 py-3 text-slate-700" data-label="Forma de pago">{a.forma_de_pago || '-'}</td>
+                          <td class="px-4 py-3 text-slate-600" data-label="Doctor">{a.doctor || '-'}</td>
+                          <td class="num px-4 py-3 text-slate-600" data-label="Recibo">{a.recibo || '-'}</td>
                         </tr>
                       {/each}
                     </tbody>
@@ -583,11 +634,14 @@
             {/if}
 
             {#if pagos.length === 0 && abonos.length === 0}
-              <div class="text-center py-12">
-                <svg class="w-12 h-12 text-gray-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z" />
-                </svg>
-                <p class="text-gray-400">No hay información financiera</p>
+              <div class="rounded-2xl surface-subtle px-6 py-14 text-center">
+                <div class="mx-auto w-14 h-14 rounded-2xl bg-slate-500/8 border border-slate-500/12 flex items-center justify-center mb-4">
+                  <svg class="w-7 h-7 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z" />
+                  </svg>
+                </div>
+                <p class="text-sm font-semibold text-slate-700">No hay información financiera</p>
+                <p class="mt-1 text-sm text-slate-500">Sin plan de pagos ni abonos registrados.</p>
               </div>
             {/if}
           </div>
@@ -597,6 +651,6 @@
           <Toast message={error} type="error" onclose={() => error = ''} />
         {/if}
       </div>
-    </div>
+    </GlassCard>
   {/if}
 </div>

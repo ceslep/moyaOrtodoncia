@@ -118,6 +118,9 @@ export interface Paciente {
   entidad: string | null;
   tipo_de_usuario: string | null;
   cuotas: Cuotas | null;
+  municipio_nombre: string | null;
+  municipio_departamento: string | null;
+  ocupacion_nombre: string | null;
 }
 
 export interface Cuotas {

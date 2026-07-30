@@ -20,9 +20,13 @@
 </script>
 
 {#if totalPages > 1}
-  <div class="flex items-center justify-center gap-1">
+  <div class="flex items-center justify-center gap-1.5">
     <button
-      class="w-9 h-9 rounded-lg flex items-center justify-center text-sm border border-gray-200 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+      class="w-10 h-10 rounded-xl flex items-center justify-center text-sm text-slate-600 focus-ring
+        bg-white/70 backdrop-blur-md border border-white/80 shadow-[var(--shadow-soft)]
+        hover:bg-white hover:text-primary-700 active:scale-[0.96]
+        disabled:opacity-35 disabled:cursor-not-allowed disabled:hover:bg-white/70
+        transition-all duration-200 ease-out"
       disabled={page <= 1}
       onclick={() => onPageChange(page - 1)}
       aria-label="Página anterior"
@@ -34,11 +38,15 @@
 
     {#each pages as p}
       {#if p === '...'}
-        <span class="w-9 h-9 flex items-center justify-center text-sm text-gray-400">...</span>
+        <span class="w-10 h-10 flex items-center justify-center text-sm text-slate-500" aria-hidden="true">...</span>
       {:else}
         <button
-          class="w-9 h-9 rounded-lg flex items-center justify-center text-sm font-medium transition-all
-            {p === page ? 'bg-primary-600 text-white shadow-sm' : 'border border-gray-200 hover:bg-gray-50 text-gray-700'}"
+          class="num w-10 h-10 rounded-xl flex items-center justify-center text-sm font-semibold focus-ring
+            transition-all duration-200 ease-out active:scale-[0.96]
+            {p === page
+              ? 'bg-gradient-to-br from-primary-600 to-primary-700 text-white shadow-[var(--shadow-glow-primary)]'
+              : 'bg-white/70 backdrop-blur-md border border-white/80 shadow-[var(--shadow-soft)] text-slate-700 hover:bg-white hover:text-primary-700'}"
+          aria-current={p === page ? 'page' : undefined}
           onclick={() => onPageChange(p as number)}
         >
           {p}
@@ -47,7 +55,11 @@
     {/each}
 
     <button
-      class="w-9 h-9 rounded-lg flex items-center justify-center text-sm border border-gray-200 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+      class="w-10 h-10 rounded-xl flex items-center justify-center text-sm text-slate-600 focus-ring
+        bg-white/70 backdrop-blur-md border border-white/80 shadow-[var(--shadow-soft)]
+        hover:bg-white hover:text-primary-700 active:scale-[0.96]
+        disabled:opacity-35 disabled:cursor-not-allowed disabled:hover:bg-white/70
+        transition-all duration-200 ease-out"
       disabled={page >= totalPages}
       onclick={() => onPageChange(page + 1)}
       aria-label="Página siguiente"

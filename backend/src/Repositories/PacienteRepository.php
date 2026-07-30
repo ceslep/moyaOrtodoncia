@@ -97,8 +97,13 @@ class PacienteRepository
                        p.tipo, p.profesional, p.razon_inicia,
                        p.terminado, p.retencion, p.consecuencia,
                        p.entidad, p.tipo_de_usuario, p.nivel_sisben,
-                       CASE WHEN p.foto IS NOT NULL THEN 1 ELSE 0 END as tiene_foto
-                FROM paciente p WHERE p.ind = :ind";
+                       CASE WHEN p.foto IS NOT NULL THEN 1 ELSE 0 END as tiene_foto,
+                       m.nombre AS municipio_nombre, m.departamento AS municipio_departamento,
+                       o.nombre AS ocupacion_nombre
+                FROM paciente p
+                LEFT JOIN municipios m ON m.codigo = p.ciudad_residencia
+                LEFT JOIN ocupaciones o ON CAST(o.codigo AS CHAR) = CAST(p.ocupacion AS CHAR)
+                WHERE p.ind = :ind";
         $stmt = $this->db->prepare($sql);
         $stmt->bindValue(':ind', $ind, \PDO::PARAM_INT);
         $stmt->execute();
