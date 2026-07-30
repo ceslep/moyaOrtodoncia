@@ -65,8 +65,11 @@
           localStorage.removeItem('auth_user');
         }
       } catch {
-        localStorage.removeItem('auth_token');
-        localStorage.removeItem('auth_user');
+        // Error de red/CORS: confiar en el token guardado
+        authToken = savedToken;
+        user = JSON.parse(savedUser);
+        isAuthenticated = true;
+        setAuthToken(savedToken);
       }
     }
     authChecked = true;
