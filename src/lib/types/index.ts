@@ -378,6 +378,24 @@ export interface DashboardResumen {
   proximas_citas: (Cita & { nombres: string; historia: number })[];
 }
 
+export interface EstadisticasPaciente {
+  resumen: {
+    total_pacientes: number;
+    total_ciudades: number;
+    edad_promedio: number;
+    primer_paciente: string | null;
+  };
+  por_ciudad: { ciudad: string; cantidad: number }[];
+  ciudad_barrio: { ciudad: string; barrio: string; cantidad: number; direcciones_ejemplo: string }[];
+  por_genero: { genero: string; cantidad: number }[];
+  por_edad: { rango_edad: string; cantidad: number }[];
+  por_ocupacion: { ocupacion: string; cantidad: number }[];
+  por_estado_civil: { estado_civil: string; cantidad: number }[];
+  por_anio: { anio: number; cantidad: number }[];
+  por_mes: { mes: number; cantidad: number }[];
+  por_plan: { plan_pago: string; cantidad: number }[];
+}
+
 export interface DatosEmpresa {
   ind: number;
   nit: string | null;

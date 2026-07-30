@@ -1,14 +1,25 @@
 <script lang="ts">
   import ThiingsIcon from './ThiingsIcon.svelte';
 
-  let { currentView = $bindable(), params = $bindable() } = $props();
+  let {
+    currentView = $bindable(),
+    params = $bindable(),
+    user = null,
+    onLogout = () => {},
+  }: {
+    currentView: string;
+    params: Record<string, unknown>;
+    user?: { id: number; usuario: string } | null;
+    onLogout?: () => void;
+  } = $props();
 
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: 'dashboard' },
     { id: 'pacientes', label: 'Pacientes', icon: 'patient' },
+    { id: 'estadisticas', label: 'Estadisticas', icon: 'charts' },
     { id: 'agenda', label: 'Agenda / Citas', icon: 'calendar' },
     { id: 'financiero', label: 'Financiero', icon: 'finances' },
-    { id: 'catalogos', label: 'Catálogos', icon: 'folder' },
+    { id: 'catalogos', label: 'Catalogos', icon: 'folder' },
   ];
 
   let sidebarOpen = $state(false);
@@ -98,12 +109,27 @@
   </nav>
 
   <div class="relative p-3 mx-3 mb-4 rounded-xl bg-white/8 backdrop-blur-md border border-white/15">
-    <div class="flex items-center gap-2">
-      <span class="relative flex w-2 h-2">
-        <span class="absolute inset-0 rounded-full bg-emerald-400 animate-pulse-dot"></span>
-        <span class="relative w-2 h-2 rounded-full bg-emerald-400"></span>
-      </span>
-      <p class="text-blue-100/80 text-xs font-medium">Solo lectura</p>
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-2 min-w-0">
+        <span class="relative flex w-2 h-2 flex-shrink-0">
+          <span class="absolute inset-0 rounded-full bg-emerald-400 animate-pulse-dot"></span>
+          <span class="relative w-2 h-2 rounded-full bg-emerald-400"></span>
+        </span>
+        <p class="text-blue-100/80 text-xs font-medium truncate">
+          {user?.usuario || 'Sesion activa'}
+        </p>
+      </div>
+      <button
+        class="flex-shrink-0 p-1.5 rounded-lg text-blue-200/60 hover:text-white hover:bg-white/10
+          transition-colors duration-200 focus-ring-light"
+        onclick={onLogout}
+        aria-label="Cerrar sesion"
+        title="Cerrar sesion"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" />
+        </svg>
+      </button>
     </div>
   </div>
 </aside>

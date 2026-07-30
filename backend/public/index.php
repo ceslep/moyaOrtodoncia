@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: GET, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type');
+header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type, Authorization');
 header('Content-Type: application/json; charset=utf-8');
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
@@ -30,6 +30,8 @@ require_once dirname(__DIR__) . '/src/Repositories/HojaVidaRepository.php';
 require_once dirname(__DIR__) . '/src/Repositories/DashboardRepository.php';
 require_once dirname(__DIR__) . '/src/Repositories/MunicipioRepository.php';
 require_once dirname(__DIR__) . '/src/Repositories/OcupacionRepository.php';
+require_once dirname(__DIR__) . '/src/Repositories/EstadisticasRepository.php';
+require_once dirname(__DIR__) . '/src/Repositories/AuthRepository.php';
 require_once dirname(__DIR__) . '/src/Controllers/PacienteController.php';
 require_once dirname(__DIR__) . '/src/Controllers/CitaController.php';
 require_once dirname(__DIR__) . '/src/Controllers/EvolucionController.php';
@@ -40,6 +42,7 @@ require_once dirname(__DIR__) . '/src/Controllers/HojaVidaController.php';
 require_once dirname(__DIR__) . '/src/Controllers/DashboardController.php';
 require_once dirname(__DIR__) . '/src/Controllers/MunicipioController.php';
 require_once dirname(__DIR__) . '/src/Controllers/OcupacionController.php';
+require_once dirname(__DIR__) . '/src/Controllers/EstadisticasController.php';
 
 use Support\JsonResponse;
 
@@ -48,12 +51,35 @@ try {
     $route = '/' . trim($route, '/');
     $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 
-    if ($method !== 'GET') {
-        JsonResponse::error('Method not allowed', 405);
-    }
-
     $parts = explode('/', trim($route, '/'));
 
+    // Auth routes — allow POST
+    if ($route === '/api/auth/verify' && $method === 'GET') {
+        $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
+        $token = preg_replace('/^Bearer\s+/i', '', $authHeader);
+        if (!$token) {
+            JsonResponse::error('Token requerido', 401);
+        }
+        $authRepo = new \Repositories\AuthRepository();
+        $user = $authRepo->validateToken($token);
+        if (!$user) {
+            JsonResponse::error('Token inválido o expirado', 401);
+        }
+        JsonResponse::success(['user' => ['id' => (int)$user['user_id'], 'usuario' => $user['usuario']]]);
+    }
+    elseif ($route === '/api/auth/logout' && $method === 'POST') {
+        $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
+        $token = preg_replace('/^Bearer\s+/i', '', $authHeader);
+        if ($token) {
+            $authRepo = new \Repositories\AuthRepository();
+            $authRepo->deleteToken($token);
+        }
+        JsonResponse::success(['message' => 'Sesión cerrada']);
+    }
+    // GET-only routes below
+    elseif ($method !== 'GET') {
+        JsonResponse::error('Method not allowed', 405);
+    }
     // Route: /api/pacientes/{ind}/foto
     if (preg_match('#^/api/pacientes/(\d+)/foto$#', $route, $m)) {
         \Controllers\PacienteController::foto((int)$m[1]);
@@ -137,6 +163,10 @@ try {
     // Route: /api/personal
     elseif ($route === '/api/personal') {
         \Controllers\HojaVidaController::index();
+    }
+    // Route: /api/estadisticas/pacientes
+    elseif ($route === '/api/estadisticas/pacientes') {
+        \Controllers\EstadisticasController::pacientes();
     }
     // Route: /api/dashboard/resumen
     elseif ($route === '/api/dashboard/resumen') {

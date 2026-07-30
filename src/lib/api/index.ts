@@ -1,14 +1,60 @@
 import type { PaginatedResponse, Paciente, Cita, CitaCancelada, Evolucion, Abono, Pago, DetallePago, DashboardResumen, DatosEmpresa } from '$lib/types';
 
 const BASE = 'https://app.iedeoccidente.com/mo/public/index.php';
+const LOGIN_URL = 'https://app.iedeoccidente.com/mo/public/login.php';
 
-async function apiFetch<T>(url: string): Promise<T> {
-  const res = await fetch(url);
+let authToken: string | null = null;
+
+export function setAuthToken(token: string | null) {
+  authToken = token;
+}
+
+export function getAuthToken(): string | null {
+  return authToken;
+}
+
+async function apiFetch<T>(url: string, options?: RequestInit): Promise<T> {
+  const headers: Record<string, string> = {
+    ...(options?.headers as Record<string, string> || {}),
+  };
+  if (authToken) {
+    headers['Authorization'] = `Bearer ${authToken}`;
+  }
+  const res = await fetch(url, { ...options, headers });
   if (!res.ok) {
     const err = await res.json().catch(() => ({ error: { message: 'Error de red', code: res.status } }));
     throw new Error(err.error?.message || `HTTP ${res.status}`);
   }
   return res.json();
+}
+
+export async function loginUser(usuario: string, password: string) {
+  const res = await fetch(LOGIN_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ usuario, password }),
+  });
+  const data = await res.json();
+  if (!res.ok || !data.success) {
+    throw new Error(data.error || 'Error de autenticación');
+  }
+  return data as { success: boolean; token: string; user: { id: number; usuario: string } };
+}
+
+export async function verifyToken(token: string) {
+  const res = await fetch(`${BASE}?route=api/auth/verify`, {
+    headers: { 'Authorization': `Bearer ${token}` },
+  });
+  if (!res.ok) return false;
+  const data = await res.json();
+  return data.success === true;
+}
+
+export async function logoutUser(token: string) {
+  await fetch(`${BASE}?route=api/auth/logout`, {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${token}` },
+  });
 }
 
 export function searchPacientes(search: string, page = 1, perPage = 20) {
@@ -111,4 +157,8 @@ export function getMunicipioByCodigo(codigo: string) {
 
 export function getOcupacionByCodigo(codigo: string) {
   return apiFetch<{ data: Record<string, string> }>(`${BASE}?route=api/ocupaciones/${encodeURIComponent(codigo)}`);
+}
+
+export function getEstadisticasPacientes() {
+  return apiFetch<{ data: import('$lib/types').EstadisticasPaciente }>(`${BASE}?route=api/estadisticas/pacientes`);
 }
